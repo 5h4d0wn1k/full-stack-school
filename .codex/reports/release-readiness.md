@@ -68,16 +68,18 @@
 
 ## Node 57dc0067 Revalidation
 
-- `git status --porcelain=v1 -uall` was clean at node pickup; the remaining branch delta is local commit `1d4d65c` plus the follow-up clean-checkout `next-env.d.ts` hardening.
-- `node -v && npm -v` reported Node `v18.19.1` and npm `9.2.0`; Node 20 remains the contracted CI and release runtime.
-- `npm ci` passed with the expected local Node engine warning and reported 21 total non-critical audit findings.
+- `git status --porcelain=v1 -uall` was clean at node pickup; the dirty-tree snapshot was stale. The follow-up hardening tracks `next-env.d.ts` so clean checkouts do not depend on a local ignored Next.js type shim.
+- `node --version && npm --version && npm ci` reported Node `v18.19.1` and npm `9.2.0`; `npm ci` passed with the expected local Node engine warning and reported 21 total audit findings. Node 20 remains the contracted CI and release runtime.
 - `npm run audit:critical` exited 0; npm still reports 5 high and 3 moderate production advisories that require a separate behavior-tested dependency upgrade.
 - `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/full_stack_school?schema=public NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y2xlcmsuZXhhbXBsZSQ CLERK_SECRET_KEY=sk_test_placeholder npm run verify` passed: Prisma generate, Prisma validate, 14 contract/product tests, Next lint, TypeScript typecheck, and `next build`.
-- `HEALTH_URL=http://127.0.0.1:3101/health npm run smoke:health` passed against a locally started production build.
+- `PORT=3101 ... npm run start` plus `HEALTH_URL=http://127.0.0.1:3101/health npm run smoke:health` passed against a locally started production build.
 - `docker compose config --quiet` passed.
+- JSON parsing, `bash -n .codex/hooks/preflight.sh`, and `git diff --check` passed. Python syntax is not applicable because there are no tracked Python files.
+- A live-secret scan found no live Clerk keys or private-key material outside ignored/generated directories. The broader scan matched only local placeholder PostgreSQL URLs in CI, Compose, scripts, and docs.
 - `docker build --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y2xlcmsuZXhhbXBsZSQ -t full-stack-school:release-node-57dc0067 .` passed with a `689.2kB` build context.
-- Local Docker shadow smoke passed for image `full-stack-school:release-node-57dc0067`: `/health` passed before restart on `127.0.0.1:32778` and after `docker restart` on `127.0.0.1:32779`.
-- `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:32781/full_stack_school?schema=public ./node_modules/.bin/prisma migrate deploy` passed against disposable `postgres:15` and applied both existing migrations.
+- Local Docker shadow smoke passed for image `full-stack-school:release-node-57dc0067`: `/health` passed before restart and after `docker restart` using Docker-assigned localhost ports.
+- `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:<dynamic-port>/full_stack_school?schema=public ./node_modules/.bin/prisma migrate deploy` passed against disposable `postgres:15` and applied both existing migrations.
+- Release bundle creation passed: `.codex/release/full-stack-school-release-readiness-baseline-2026-05-14.tar.gz` was regenerated from `HEAD` and confirmed to include `AGENTS.md`, `verification_contract.json`, `.jarvis/production_grade_profile.json`, `.codex/reports/release-readiness.md`, and `next-env.d.ts`.
 
 ## Rollback Note
 
