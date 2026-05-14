@@ -16,6 +16,9 @@
 # production
 /build
 
+# release evidence bundles
+.codex/release/
+
 # misc
 .DS_Store
 *.pem

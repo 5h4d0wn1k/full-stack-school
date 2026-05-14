@@ -1,7 +1,16 @@
-version: '3.8'
+x-app-environment: &app-environment
+  DATABASE_URL: postgresql://myuser:mypassword@postgres:5432/mydb?schema=public
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-pk_test_Y2xlcmsuZXhhbXBsZSQ}
+  CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-sk_test_placeholder}
+  NEXT_TELEMETRY_DISABLED: "1"
+
+x-app-build: &app-build
+  context: .
+  args:
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-pk_test_Y2xlcmsuZXhhbXBsZSQ}
 
 services:
-  postgress:
+  postgres:
     image: postgres:15
     container_name: postgres_db
     environment:
@@ -12,16 +21,36 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d mydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  migrate:
+    build: *app-build
+    image: full-stack-school:local
+    container_name: nextjs_migrate
+    command: ["npx", "prisma", "migrate", "deploy"]
+    environment: *app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
   app:
-    build: .
+    build: *app-build
+    image: full-stack-school:local
     container_name: nextjs_app
     ports:
       - '3000:3000'
-    environment:
-      - DATABASE_URL: postgresql://myuser:mypassword@[YOUR_SERVER_IP]:5432/mydb
+    environment: *app-environment
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:

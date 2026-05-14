@@ -1,0 +1,32 @@
+# Git and local metadata
+.git
+.github
+.gitignore
+.dockerignore
+
+# Dependencies and generated build output
+node_modules
+.next
+out
+build
+coverage
+*.tsbuildinfo
+
+# Local secrets and runtime files
+.env
+.env.*
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Repo governance and evidence artifacts are not needed in the runtime image
+.codex
+.jarvis
+docs
+tests
+
+# Editor and OS noise
+.DS_Store
+.vscode
+.idea

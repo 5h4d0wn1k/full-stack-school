@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "workspace": "full-stack-school",
+  "mode": "production-grade-advisory-first",
+  "default_branch": "main",
+  "preferred_work_branch_prefix": "harden/",
+  "verification_contract": "verification_contract.json",
+  "production_grade_profile": ".jarvis/production_grade_profile.json",
+  "preflight_hook": ".codex/hooks/preflight.sh",
+  "pre_handoff_checklist": ".codex/hooks/pre-handoff.md",
+  "rules": [
+    ".codex/rules/release-readiness.md"
+  ],
+  "release_readiness_report": ".codex/reports/release-readiness.md"
+}

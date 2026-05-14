@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "harden/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify Next.js app
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: full_stack_school
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      CI: true
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/full_stack_school?schema=public
+      NEXT_TELEMETRY_DISABLED: 1
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2xlcmsuZXhhbXBsZSQ
+      CLERK_SECRET_KEY: sk_test_placeholder
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose contract
+        run: docker compose config --quiet
+
+      - name: Assert container build skips development migrations
+        run: |
+          if grep -E "prisma[[:space:]]+migrate[[:space:]]+dev|migrate[[:space:]]+dev" Dockerfile; then
+            echo "Dockerfile must not run prisma migrate dev during image build."
+            exit 1
+          fi
+
+      - name: Build container image
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" \
+            -t full-stack-school:${{ github.sha }} .
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run critical production dependency audit
+        run: npm run audit:critical
+
+      - name: Apply database migrations with production command
+        run: npx prisma migrate deploy
+
+      - name: Run verification contract
+        run: npm run verify
+
+      - name: Start app for health smoke
+        run: |
+          npm run start &
+          echo $! > /tmp/full-stack-school-next.pid
+          for attempt in $(seq 1 30); do
+            if npm run smoke:health; then
+              kill "$(cat /tmp/full-stack-school-next.pid)"
+              exit 0
+            fi
+            sleep 2
+          done
+          kill "$(cat /tmp/full-stack-school-next.pid)" || true
+          exit 1

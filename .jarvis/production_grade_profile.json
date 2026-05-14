@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "workspace": "full-stack-school",
+  "profile": "production_grade",
+  "maturity": {
+    "current_stage": "discovered",
+    "starting_score_percent": 18,
+    "target_stage": "self_improving",
+    "ratchet_policy": "Advisory-first, PR-first, evidence-backed changes only."
+  },
+  "repo_contract": {
+    "default_branch": "main",
+    "current_hardening_branch": "harden/release-readiness-baseline",
+    "delivery_path": "branch -> pull request -> checks -> reviewed merge -> deploy",
+    "verification_contract": "verification_contract.json",
+    "ai_operating_guidance": [
+      "AGENTS.md",
+      ".codex/config/repo.json",
+      ".codex/rules/release-readiness.md",
+      ".codex/hooks/preflight.sh"
+    ],
+    "docker_context_hygiene": ".dockerignore"
+  },
+  "product": {
+    "name": "Lama Dev School Management Dashboard",
+    "target_users": [
+      "school administrators",
+      "teachers",
+      "students",
+      "parents"
+    ],
+    "primary_problem": "Provide role-appropriate school operations, schedule, attendance, result, event, and announcement workflows from one dashboard.",
+    "critical_user_journeys": [
+      "Administrator manages school structure and people records.",
+      "Teacher manages lessons, assignments, exams, attendance, and results.",
+      "Student views class schedule, assignments, exams, results, and attendance.",
+      "Parent views child-specific schedule, announcements, events, attendance, and results."
+    ],
+    "product_brief": "docs/product/prfaq.md",
+    "journey_map": "docs/product/critical-user-journeys.md"
+  },
+  "application": {
+    "name": "Lama Dev School Management Dashboard",
+    "type": "school management dashboard",
+    "framework": "Next.js 14",
+    "language": "TypeScript",
+    "auth": "Clerk",
+    "orm": "Prisma",
+    "database": "PostgreSQL",
+    "healthcheck_path": "/health"
+  },
+  "deploy_contract": {
+    "runtime_target": "cynik",
+    "runtime_artifact": "Next.js production build or container image after verification",
+    "runtime_tar": ".codex/release/full-stack-school-release-readiness-baseline-2026-05-14.tar.gz",
+    "env_file_source": "process environment supplied by deployment platform; committed .env files are forbidden",
+    "healthcheck": "/health",
+    "rollback": "previous_release",
+    "shadow_deploy_required": true,
+    "production_deploy_from_ai_session": false
+  },
+  "required_gates": [
+    "python syntax gate when Python files exist",
+    "npm ci",
+    "npm run audit:critical",
+    "npx prisma migrate deploy against disposable database",
+    "npm test",
+    "npm run verify",
+    "health smoke against started production build",
+    "release bundle creation",
+    "rollback target confirmation"
+  ],
+  "known_blockers": [
+    "No browser end-to-end suite exists for authenticated dashboard flows.",
+    "The critical production dependency audit is a required gate; remaining non-critical production advisories require separate behavior-tested dependency work.",
+    "Dockerfile and docker-compose.yml are hardened as a local release evidence path, but Docker Compose is not confirmed as the production deployment interface.",
+    "Production secrets, service manager, target metadata, and deployment credentials are not available in this workspace."
+  ],
+  "owners": {
+    "engineering": "TBD",
+    "release_manager": "TBD",
+    "incident_commander": "TBD"
+  }
+}
