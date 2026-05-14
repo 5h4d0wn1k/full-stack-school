@@ -23,6 +23,7 @@
 - Synchronized `package-lock.json` with the current `package.json` dependency baseline so `npm ci` and Docker `npm ci` can run cleanly.
 - Added `npm run audit:critical` to package scripts, CI, and repo guidance so critical production advisories block release promotion.
 - Added `.dockerignore` to keep generated artifacts, local evidence, governance docs, and secrets out of the runtime image context.
+- Stopped ignoring `next-env.d.ts` and added a contract test so clean CI and Docker checkouts include the Next.js TypeScript environment shim instead of relying on a local generated file.
 
 ## Delivery Blockers
 
@@ -40,12 +41,13 @@
 - JavaScript syntax checks passed for `scripts/prisma-validate.mjs`, `scripts/smoke-health.mjs`, `tests/contracts.test.mjs`, and `tests/product-behavior.test.mjs`.
 - JSON parsing passed for `verification_contract.json`, `.jarvis/production_grade_profile.json`, and `.codex/config/repo.json`.
 - `git diff --check` passed.
+- `next-env.d.ts` is tracked for clean-checkout determinism because the Dockerfile and TypeScript toolchain expect the standard Next.js type shim.
 - Python syntax gate is not applicable: no Python files were found outside ignored/generated directories.
 - Secret pattern scan found no `sk_live`, `pk_live`, private-key, or credentialed PostgreSQL production URL patterns outside ignored/generated directories.
 - `npm ci` passed. Local shell was Node `v18.19.1` with npm `9.2.0`; npm emitted an `EBADENGINE` warning for `eslint-visitor-keys@5.0.1` requiring newer Node 20.x. CI and Docker verification are contracted for Node 20.
 - `npm run audit:critical` passed with 0 critical production vulnerabilities.
 - `npm audit --omit=dev --json` returned 8 production vulnerabilities: 5 high and 3 moderate.
-- `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/full_stack_school?schema=public NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y2xlcmsuZXhhbXBsZSQ CLERK_SECRET_KEY=sk_test_placeholder npm run verify` passed: Prisma generate, Prisma validate, 13 of 13 `node --test` tests, Next lint, TypeScript typecheck, and `next build`.
+- `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/full_stack_school?schema=public NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y2xlcmsuZXhhbXBsZSQ CLERK_SECRET_KEY=sk_test_placeholder npm run verify` passed: Prisma generate, Prisma validate, 14 of 14 `node --test` tests, Next lint, TypeScript typecheck, and `next build`.
 - `npm audit --omit=dev --audit-level=critical` exited 0. The remaining production audit summary is 8 vulnerabilities: 5 high and 3 moderate.
 - `docker compose config --quiet` passed. `docker compose config` shows the app depends on healthy `postgres` plus successful one-shot `migrate`.
 - `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:<dynamic-port>/full_stack_school?schema=public npx prisma migrate deploy` passed against a disposable `postgres:15` container and applied both existing migrations.
@@ -63,6 +65,19 @@
 - Corrected restart validation passed after re-reading Docker's dynamic host port: initial smoke passed at `127.0.0.1:32776`, `docker restart` succeeded, Docker remapped the service to `127.0.0.1:32777`, and `HEALTH_URL=http://127.0.0.1:32777/health npm run smoke:health` passed.
 - Disposable Postgres and smoke containers were removed after verification.
 - Real `cynik` shadow deploy and credentialed smoke remain blocked by missing deployment credentials and target metadata.
+
+## Node 57dc0067 Revalidation
+
+- `git status --porcelain=v1 -uall` was clean at node pickup; the remaining branch delta is local commit `1d4d65c` plus the follow-up clean-checkout `next-env.d.ts` hardening.
+- `node -v && npm -v` reported Node `v18.19.1` and npm `9.2.0`; Node 20 remains the contracted CI and release runtime.
+- `npm ci` passed with the expected local Node engine warning and reported 21 total non-critical audit findings.
+- `npm run audit:critical` exited 0; npm still reports 5 high and 3 moderate production advisories that require a separate behavior-tested dependency upgrade.
+- `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/full_stack_school?schema=public NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y2xlcmsuZXhhbXBsZSQ CLERK_SECRET_KEY=sk_test_placeholder npm run verify` passed: Prisma generate, Prisma validate, 14 contract/product tests, Next lint, TypeScript typecheck, and `next build`.
+- `HEALTH_URL=http://127.0.0.1:3101/health npm run smoke:health` passed against a locally started production build.
+- `docker compose config --quiet` passed.
+- `docker build --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y2xlcmsuZXhhbXBsZSQ -t full-stack-school:release-node-57dc0067 .` passed with a `689.2kB` build context.
+- Local Docker shadow smoke passed for image `full-stack-school:release-node-57dc0067`: `/health` passed before restart on `127.0.0.1:32778` and after `docker restart` on `127.0.0.1:32779`.
+- `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:32781/full_stack_school?schema=public ./node_modules/.bin/prisma migrate deploy` passed against disposable `postgres:15` and applied both existing migrations.
 
 ## Rollback Note
 

@@ -85,3 +85,10 @@ test("docker build context excludes generated artifacts and local secrets", () =
     assert.match(dockerignore, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
 });
+
+test("clean checkouts include the Next.js TypeScript environment shim", () => {
+  const nextEnv = readText("next-env.d.ts");
+
+  assert.match(nextEnv, /<reference types="next"/);
+  assert.match(nextEnv, /<reference types="next\/image-types\/global"/);
+});
