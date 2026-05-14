@@ -28,7 +28,7 @@
 ## Delivery Blockers
 
 - No lockfile/install or Docker build blocker remains for this scoped node after the retry verification.
-- The branch `harden/release-readiness-baseline` does not track an upstream remote yet, so PR publication still requires push/PR handoff.
+- The branch `harden/release-readiness-baseline` does not track an upstream remote yet. `git push -u origin harden/release-readiness-baseline` was rejected with HTTP 403 for the authenticated GitHub account, so PR publication requires a writable fork/remote or a maintainer push.
 - A real `cynik` shadow deploy and credentialed smoke are blocked by missing deployment credentials and target metadata in this workspace.
 - Production secrets and service manager controls are not available in this workspace.
 - Product behavior regression tests and release-contract tests are green, but no browser end-to-end suite exists for authenticated dashboard flows.
@@ -72,13 +72,14 @@
 - `node --version && npm --version && npm ci` reported Node `v18.19.1` and npm `9.2.0`; `npm ci` passed with the expected local Node engine warning and reported 21 total audit findings. Node 20 remains the contracted CI and release runtime.
 - `npm run audit:critical` exited 0; npm still reports 5 high and 3 moderate production advisories that require a separate behavior-tested dependency upgrade.
 - `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/full_stack_school?schema=public NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y2xlcmsuZXhhbXBsZSQ CLERK_SECRET_KEY=sk_test_placeholder npm run verify` passed: Prisma generate, Prisma validate, 14 contract/product tests, Next lint, TypeScript typecheck, and `next build`.
-- `PORT=3101 ... npm run start` plus `HEALTH_URL=http://127.0.0.1:3101/health npm run smoke:health` passed against a locally started production build.
+- `PORT=3100 ... npm run start` plus `HEALTH_URL=http://127.0.0.1:3100/health npm run smoke:health` passed against a locally started production build.
 - `docker compose config --quiet` passed.
 - JSON parsing, `bash -n .codex/hooks/preflight.sh`, and `git diff --check` passed. Python syntax is not applicable because there are no tracked Python files.
 - A live-secret scan found no live Clerk keys or private-key material outside ignored/generated directories. The broader scan matched only local placeholder PostgreSQL URLs in CI, Compose, scripts, and docs.
 - `docker build --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y2xlcmsuZXhhbXBsZSQ -t full-stack-school:release-node-57dc0067 .` passed with a `689.2kB` build context.
-- Local Docker shadow smoke passed for image `full-stack-school:release-node-57dc0067`: `/health` passed before restart and after `docker restart` using Docker-assigned localhost ports.
-- `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:<dynamic-port>/full_stack_school?schema=public ./node_modules/.bin/prisma migrate deploy` passed against disposable `postgres:15` and applied both existing migrations.
+- Local Docker shadow smoke passed for image `full-stack-school:release-node-57dc0067`: `/health` passed before restart on `127.0.0.1:32782` and after `docker restart` on `127.0.0.1:32783`.
+- `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:32784/full_stack_school?schema=public npx prisma migrate deploy` passed against disposable `postgres:15` and applied both existing migrations.
+- `git push -u origin harden/release-readiness-baseline` failed with HTTP 403: the authenticated GitHub account does not have write permission to `safak/full-stack-school`.
 - Release bundle creation passed: `.codex/release/full-stack-school-release-readiness-baseline-2026-05-14.tar.gz` was regenerated from `HEAD` and confirmed to include `AGENTS.md`, `verification_contract.json`, `.jarvis/production_grade_profile.json`, `.codex/reports/release-readiness.md`, and `next-env.d.ts`.
 
 ## Rollback Note
