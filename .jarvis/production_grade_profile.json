@@ -11,7 +11,7 @@
   "repo_contract": {
     "default_branch": "main",
     "current_hardening_branch": "harden/release-readiness-baseline",
-    "delivery_path": "branch -> pull request -> checks -> reviewed merge -> deploy",
+    "delivery_path": "branch -> pull request -> CI checks -> reviewed merge -> deploy",
     "verification_contract": "verification_contract.json",
     "ai_operating_guidance": [
       "AGENTS.md",
@@ -39,6 +39,66 @@
     "product_brief": "docs/product/prfaq.md",
     "journey_map": "docs/product/critical-user-journeys.md"
   },
+  "architecture": {
+    "summary": "Next.js App Router dashboard with Clerk-authenticated role surfaces, Prisma as the data access layer, and PostgreSQL as the system of record.",
+    "runtime_topology": [
+      "Next.js application server renders role-specific dashboard routes and serves the dependency-light /health endpoint.",
+      "Clerk provides authentication and role metadata used by middleware and server components.",
+      "Prisma Client mediates application access to PostgreSQL.",
+      "Container builds generate Prisma Client and the Next.js production build without running database migrations."
+    ],
+    "critical_boundaries": {
+      "auth": "Role and identity decisions stay in Clerk middleware, Clerk helpers, and role-aware server components.",
+      "data": "School records are persisted through Prisma models backed by PostgreSQL; avoid ad hoc database access paths.",
+      "deployment": "Image build, migration deploy, app start, and health smoke are separate release steps.",
+      "secrets": "Secrets come from process environment or the deployment platform and must not be committed."
+    },
+    "release_risk_surfaces": [
+      "Clerk auth, middleware matchers, and role routing.",
+      "Prisma schema, migrations, seed data, and database connection settings.",
+      "Dockerfile, docker-compose.yml, CI workflow, and deployment environment variables.",
+      "Dashboard pages that expose student, parent, teacher, or administrator data."
+    ],
+    "decision_policy": "Prefer small, reversible changes that preserve role-specific dashboard behavior. Require explicit design notes, verification evidence, and rollback notes for auth, Prisma, middleware, Docker, CI, or deployment changes."
+  },
+  "agile": {
+    "planning_cadence": "Small, reviewable pull requests. Major feature work starts with PRFAQ/problem framing and critical user journey mapping before implementation.",
+    "backlog_policy": "Prioritize work that reduces release risk, protects role-based school workflows, or improves evidence for production decisions.",
+    "work_item_flow": [
+      "problem framing",
+      "critical user journey mapping",
+      "requirements and risk review",
+      "implementation",
+      "verification",
+      "PR review",
+      "release readiness update"
+    ],
+    "definition_of_ready": [
+      "Target user, user problem, and success metric are named.",
+      "Primary critical user journey and failure-sensitive points are documented.",
+      "Affected routes, Prisma models, auth roles, deploy surfaces, and rollback path are identified.",
+      "Required verification commands are selected from verification_contract.json."
+    ],
+    "definition_of_done": [
+      "Behavior changes are covered by focused tests or documented as intentionally unchanged.",
+      "npm run verify passes, or blockers and residual risk are recorded in .codex/reports/release-readiness.md.",
+      "Deploy-facing changes include /health smoke evidence and rollback notes.",
+      "PR description links the product brief or journey update when the change is feature-facing."
+    ],
+    "release_planning": {
+      "default_path": "branch -> pull request -> CI checks -> reviewed merge -> deploy",
+      "deployment_policy": "No production deploy from an AI session; release owner approves promotion after evidence review.",
+      "rollback_policy": "Prefer PR revert or previous_release redeploy. Schema changes must use backward-compatible expand/contract steps until restore is tested."
+    },
+    "metrics": [
+      "CI verification pass rate",
+      "critical production audit status",
+      "health smoke status",
+      "known authenticated journey coverage gaps",
+      "rollback target confirmation"
+    ],
+    "retro_policy": "Capture reusable release lessons in AGENTS.md, .codex rules, docs/operations, or the release-readiness report before closing major nodes."
+  },
   "application": {
     "name": "Lama Dev School Management Dashboard",
     "type": "school management dashboard",
@@ -52,7 +112,7 @@
   "deploy_contract": {
     "runtime_target": "cynik",
     "runtime_artifact": "Next.js production build or container image after verification",
-    "runtime_tar": ".codex/release/full-stack-school-release-readiness-baseline-2026-05-14.tar.gz",
+    "runtime_tar": ".codex/release/full-stack-school-release-readiness-baseline-2026-05-20.tar.gz",
     "env_file_source": "process environment supplied by deployment platform; committed .env files are forbidden",
     "healthcheck": "/health",
     "rollback": "previous_release",

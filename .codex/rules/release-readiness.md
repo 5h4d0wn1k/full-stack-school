@@ -8,6 +8,13 @@ These repo-local rules are meant to keep future AI and human changes aligned wit
 - Keep production-impacting changes additive or rollbackable unless an approved migration plan exists.
 - Do not deploy directly from an AI session. Produce evidence, then let the release owner approve deployment.
 
+## Product Planning
+
+- Check `.jarvis/production_grade_profile.json` for architecture boundaries before changing auth, Prisma, middleware, Docker, CI, or deployment behavior.
+- Use the agile operating section in `.jarvis/production_grade_profile.json` for Definition of Ready and Definition of Done.
+- Before major feature work, update or reference `docs/product/prfaq.md` and `docs/product/critical-user-journeys.md`.
+- Name the target school role, success metric, failure-sensitive points, and rollback or abort condition before broad implementation.
+
 ## Verification
 
 - Follow `verification_contract.json` before claiming completion.

@@ -6,6 +6,14 @@
   "preferred_work_branch_prefix": "harden/",
   "verification_contract": "verification_contract.json",
   "production_grade_profile": ".jarvis/production_grade_profile.json",
+  "product_brief": "docs/product/prfaq.md",
+  "critical_user_journeys": "docs/product/critical-user-journeys.md",
+  "deploy_contract": {
+    "runtime_target": "cynik",
+    "env_file_source": "process environment supplied by deployment platform; committed .env files are forbidden",
+    "healthcheck": "/health",
+    "rollback": "previous_release"
+  },
   "preflight_hook": ".codex/hooks/preflight.sh",
   "pre_handoff_checklist": ".codex/hooks/pre-handoff.md",
   "rules": [

@@ -12,6 +12,14 @@ This repository is a Next.js school management dashboard using Clerk, Prisma, an
 - Do not commit secrets, `.env` files, database dumps, or real student/family data.
 - Treat Prisma migrations, Docker changes, auth changes, and middleware changes as release-risky.
 
+## Planning Guardrails
+
+- Use `.jarvis/production_grade_profile.json` as the repo-local production-grade profile.
+- For auth, Prisma, middleware, Docker, CI, or deploy changes, reference the `architecture` section in `.jarvis/production_grade_profile.json` and name the affected boundary.
+- Before major product or workflow work, update or reference `docs/product/prfaq.md` and `docs/product/critical-user-journeys.md`.
+- Apply the agile Definition of Ready and Definition of Done in `.jarvis/production_grade_profile.json` before starting broad implementation.
+- Product-facing pull requests should name the target role, critical user journey, success metric, verification evidence, and rollback or abort condition.
+
 ## Verification Contract
 
 Follow `verification_contract.json`.
@@ -43,6 +51,7 @@ If a gate cannot run, document the blocker and residual risk in `.codex/reports/
 - Package manager: npm with `package-lock.json`
 - Database: PostgreSQL through Prisma
 - Auth: Clerk
+- Environment source: process environment supplied by the deployment platform; committed `.env` files are forbidden.
 
 ## Known Release Blockers
 
