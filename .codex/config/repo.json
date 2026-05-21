@@ -6,6 +6,8 @@
   "preferred_work_branch_prefix": "harden/",
   "verification_contract": "verification_contract.json",
   "production_grade_profile": ".jarvis/production_grade_profile.json",
+  "production_profile_release": ".jarvis/production_grade_profile.json#release",
+  "production_profile_verification": ".jarvis/production_grade_profile.json#verification",
   "product_brief": "docs/product/prfaq.md",
   "critical_user_journeys": "docs/product/critical-user-journeys.md",
   "deploy_contract": {

@@ -18,6 +18,8 @@ These repo-local rules are meant to keep future AI and human changes aligned wit
 ## Verification
 
 - Follow `verification_contract.json` before claiming completion.
+- Use `.jarvis/production_grade_profile.json#release` to confirm delivery path, promotion gates, abort conditions, and rollback posture.
+- Use `.jarvis/production_grade_profile.json#verification` to select minimum, release-promotion, and deploy-facing checks.
 - Use `npm ci` for deterministic installs.
 - Run `npm run audit:critical` before release promotion so critical production advisories block delivery.
 - Run `npm test` for repo contract regression coverage.

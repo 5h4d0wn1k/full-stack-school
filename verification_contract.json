@@ -59,7 +59,7 @@
     "Product behavior regression tests and release-contract tests are green under npm run verify, but no browser end-to-end suite exists for authenticated dashboard flows.",
     "Production dependency audit critical gate is clear for the current locked baseline; npm audit --omit=dev still reports 5 high and 3 moderate production vulnerabilities. The remaining fixes require separate behavior-tested major-upgrade work.",
     "Local Docker release image build, /health smoke, and restart smoke pass with placeholder Clerk environment values after re-reading Docker's dynamic host port; real cynik shadow deploy and credentialed smoke remain blocked by missing deployment credentials and target metadata.",
-    ".dockerignore reduced the Docker build context to about 689.2kB during local verification; keep generated artifacts, local evidence, and secrets out of future image contexts."
+    ".dockerignore reduced the Docker build context to about 690.2kB during local verification; keep generated artifacts, local evidence, and secrets out of future image contexts."
   ],
   "rollback": {
     "primary": "Revert the pull request or redeploy the previous release artifact.",

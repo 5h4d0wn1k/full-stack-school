@@ -61,6 +61,95 @@
     ],
     "decision_policy": "Prefer small, reversible changes that preserve role-specific dashboard behavior. Require explicit design notes, verification evidence, and rollback notes for auth, Prisma, middleware, Docker, CI, or deployment changes."
   },
+  "verification": {
+    "contract_file": "verification_contract.json",
+    "default_gate": "npm run verify",
+    "minimum_local_checks": [
+      "npm ci",
+      "npm run prisma:generate",
+      "npm run prisma:validate",
+      "npm test",
+      "npm run lint",
+      "npm run typecheck",
+      "npm run build"
+    ],
+    "release_promotion_checks": [
+      "npm run audit:critical",
+      "npx prisma migrate deploy against a disposable or controlled target database",
+      "npm run verify",
+      "release bundle creation",
+      "rollback target confirmation"
+    ],
+    "deploy_facing_checks": [
+      "docker compose config --quiet",
+      "docker build with required public build args",
+      "start the built app or image",
+      "npm run smoke:health",
+      "restart validation where the deployment runtime supports it"
+    ],
+    "regression_risk_controls": [
+      "tests/contracts.test.mjs asserts governance, CI, Docker, and release-readiness contracts",
+      "tests/product-behavior.test.mjs guards role routing and high-value dashboard behavior",
+      "browser end-to-end coverage is still required before high-confidence authenticated-flow promotion"
+    ],
+    "evidence_policy": "Record exact commands, outcomes, blockers, and residual risk in .codex/reports/release-readiness.md before handoff.",
+    "blocked_gate_policy": "Do not claim completion for a blocked gate. Name the blocker, affected release risk, and next safe step.",
+    "runtime_notes": {
+      "ci_node": "20.x",
+      "local_node_observation": "Local shell may differ from CI; Node 20 remains the contracted release verification runtime.",
+      "healthcheck": "/health"
+    }
+  },
+  "release": {
+    "default_path": "branch -> pull request -> CI checks -> reviewed merge -> deploy",
+    "strategy": "Advisory-first hardening on a branch, followed by maintainer PR review and release-owner promotion after evidence review.",
+    "risk_classification": {
+      "current_hardening": "configuration, documentation, contract tests, and release evidence only",
+      "release_risky_surfaces": [
+        "auth",
+        "Prisma",
+        "middleware",
+        "Docker",
+        "CI",
+        "deployment"
+      ]
+    },
+    "promotion_gates": [
+      "npm ci",
+      "npm run audit:critical",
+      "npx prisma migrate deploy against a disposable or controlled target database",
+      "npm run verify",
+      "docker compose config --quiet",
+      "start built app and run npm run smoke:health",
+      "release bundle creation",
+      "rollback target confirmation"
+    ],
+    "deploy_sequence": [
+      "Confirm target environment variables and previous release artifact.",
+      "Build the application or container image without database side effects.",
+      "Run Prisma migrations with npx prisma migrate deploy as an explicit release step.",
+      "Start or roll the app process.",
+      "Smoke /health before routing or promotion.",
+      "Verify the highest-risk authenticated journey available in the target environment."
+    ],
+    "abort_conditions": [
+      "Any required CI, verification, build, migration, or health-smoke gate fails.",
+      "Critical production dependency audit reports a vulnerability.",
+      "Production secrets, target metadata, rollback artifact, or deployment owner cannot be confirmed.",
+      "Role-based dashboard access cannot be verified for the release scope."
+    ],
+    "rollback": {
+      "runtime": "previous_release",
+      "code": "Revert the pull request or redeploy the previous known-good artifact.",
+      "database": "Use backward-compatible Prisma migrations; after a committed migration, prefer app rollback to a version compatible with the new schema unless a tested restore plan exists."
+    },
+    "evidence_required": [
+      "Exact commands and outcomes recorded in .codex/reports/release-readiness.md.",
+      "Health smoke evidence for /health.",
+      "Rollback target confirmation.",
+      "Blocked gates and residual risks called out before handoff."
+    ]
+  },
   "agile": {
     "planning_cadence": "Small, reviewable pull requests. Major feature work starts with PRFAQ/problem framing and critical user journey mapping before implementation.",
     "backlog_policy": "Prioritize work that reduces release risk, protects role-based school workflows, or improves evidence for production decisions.",
@@ -112,7 +201,7 @@
   "deploy_contract": {
     "runtime_target": "cynik",
     "runtime_artifact": "Next.js production build or container image after verification",
-    "runtime_tar": ".codex/release/full-stack-school-release-readiness-baseline-2026-05-20.tar.gz",
+    "runtime_tar": ".codex/release/full-stack-school-release-readiness-baseline-2026-05-21.tar.gz",
     "env_file_source": "process environment supplied by deployment platform; committed .env files are forbidden",
     "healthcheck": "/health",
     "rollback": "previous_release",

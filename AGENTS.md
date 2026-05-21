@@ -24,6 +24,8 @@ This repository is a Next.js school management dashboard using Clerk, Prisma, an
 
 Follow `verification_contract.json`.
 
+Also check the top-level `release` and `verification` sections in `.jarvis/production_grade_profile.json` when choosing release gates, rollback posture, or documenting blocked checks.
+
 Minimum local checks for most changes:
 
 ```bash

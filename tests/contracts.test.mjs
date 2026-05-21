@@ -53,6 +53,63 @@ test("release readiness contract files are present and parseable", () => {
     ),
     "architecture release risk surfaces should include Prisma"
   );
+  assert.equal(productionProfile.verification.contract_file, "verification_contract.json");
+  assert.equal(productionProfile.verification.default_gate, "npm run verify");
+  for (const required of [
+    "minimum_local_checks",
+    "release_promotion_checks",
+    "deploy_facing_checks",
+    "regression_risk_controls",
+    "evidence_policy",
+    "blocked_gate_policy",
+    "runtime_notes",
+  ]) {
+    assert.ok(
+      productionProfile.verification[required],
+      `production profile verification.${required} is required`
+    );
+  }
+  assert.ok(
+    productionProfile.verification.minimum_local_checks.includes("npm run build"),
+    "verification minimum local checks should include build"
+  );
+  assert.ok(
+    productionProfile.verification.release_promotion_checks.includes("npm run audit:critical"),
+    "verification release promotion checks should include critical audit"
+  );
+  assert.ok(
+    productionProfile.verification.deploy_facing_checks.includes("npm run smoke:health"),
+    "verification deploy-facing checks should include health smoke"
+  );
+  assert.equal(
+    productionProfile.release.default_path,
+    "branch -> pull request -> CI checks -> reviewed merge -> deploy"
+  );
+  for (const required of [
+    "strategy",
+    "risk_classification",
+    "promotion_gates",
+    "deploy_sequence",
+    "abort_conditions",
+    "rollback",
+    "evidence_required",
+  ]) {
+    assert.ok(
+      productionProfile.release[required],
+      `production profile release.${required} is required`
+    );
+  }
+  assert.equal(productionProfile.release.rollback.runtime, "previous_release");
+  assert.ok(
+    productionProfile.release.promotion_gates.includes("npm run verify"),
+    "release promotion gates should include npm run verify"
+  );
+  assert.ok(
+    productionProfile.release.abort_conditions.some((item) =>
+      item.includes("Critical production dependency audit")
+    ),
+    "release abort conditions should include the critical audit gate"
+  );
   assert.equal(
     productionProfile.agile.release_planning.default_path,
     "branch -> pull request -> CI checks -> reviewed merge -> deploy"
@@ -87,6 +144,14 @@ test("release readiness contract files are present and parseable", () => {
   assert.equal(codexConfig.workspace, "full-stack-school");
   assert.equal(codexConfig.verification_contract, "verification_contract.json");
   assert.equal(codexConfig.production_grade_profile, ".jarvis/production_grade_profile.json");
+  assert.equal(
+    codexConfig.production_profile_release,
+    ".jarvis/production_grade_profile.json#release"
+  );
+  assert.equal(
+    codexConfig.production_profile_verification,
+    ".jarvis/production_grade_profile.json#verification"
+  );
   assert.equal(codexConfig.product_brief, "docs/product/prfaq.md");
   assert.equal(codexConfig.critical_user_journeys, "docs/product/critical-user-journeys.md");
   assert.equal(codexConfig.deploy_contract.healthcheck, "/health");

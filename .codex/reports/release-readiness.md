@@ -2,7 +2,7 @@
 
 ## Snapshot
 
-- Date: 2026-05-20
+- Date: 2026-05-21
 - Branch: `harden/release-readiness-baseline`
 - Default branch: `main`
 - App: Next.js school management dashboard with Clerk, Prisma, and PostgreSQL
@@ -14,6 +14,8 @@
 - Added `verification_contract.json` as the repo-local verification source of truth.
 - Added `.jarvis/production_grade_profile.json` to make release, verification, deploy, and rollback expectations explicit, with canonical numeric `schema_version: 1`.
 - Added the required `architecture` section to `.jarvis/production_grade_profile.json`, including runtime topology, critical boundaries, release risk surfaces, and decision policy.
+- Added the required top-level `release` section to `.jarvis/production_grade_profile.json`, including default delivery path, strategy, promotion gates, deploy sequence, abort conditions, rollback posture, and evidence requirements.
+- Added the required top-level `verification` section to `.jarvis/production_grade_profile.json`, including minimum local checks, release-promotion checks, deploy-facing checks, regression controls, evidence policy, blocked-gate policy, and runtime notes.
 - Added the required `agile` section to `.jarvis/production_grade_profile.json`, including Definition of Ready, Definition of Done, release planning, metrics, and retro capture policy.
 - Added repo-local AI operating guidance through `AGENTS.md` and `.codex` config, rules, and preflight hook.
 - Tightened `AGENTS.md`, `.codex/config/repo.json`, `.codex/rules/release-readiness.md`, and contract tests so future AI sessions inherit product-planning and agile guardrails.
@@ -34,6 +36,8 @@
 - No lockfile/install or Docker build blocker remains for this scoped node after the retry verification.
 - No verification-contract file blocker remains: `verification_contract.json` exists, parses, and is covered by contract tests.
 - No production-grade `architecture` section blocker remains: `.jarvis/production_grade_profile.json` includes the required architecture section and contract tests assert it.
+- No production-grade `release` section blocker remains: `.jarvis/production_grade_profile.json` includes the required release section and contract tests assert it.
+- No production-grade `verification` section blocker remains: `.jarvis/production_grade_profile.json` includes the required verification section and contract tests assert it.
 - No production-grade `agile` section blocker remains: `.jarvis/production_grade_profile.json` includes the required agile planning section and contract tests assert it.
 - The branch `harden/release-readiness-baseline` does not track an upstream remote yet. `git push -u origin harden/release-readiness-baseline` was rejected with HTTP 403 for the authenticated GitHub account, so PR publication requires a writable fork/remote or a maintainer push.
 - A real `cynik` shadow deploy and credentialed smoke are blocked by missing deployment credentials and target metadata in this workspace.
@@ -141,6 +145,64 @@
 - `git branch -vv` confirmed `harden/release-readiness-baseline` still does not track an upstream remote. `git push --dry-run -u origin harden/release-readiness-baseline` failed with HTTP 403 for GitHub user `5h4d0wn1k`, so PR publication remains blocked until a maintainer or writable remote pushes the branch.
 - Release bundle creation passed: `.codex/release/full-stack-school-release-readiness-baseline-2026-05-20.tar.gz` includes `AGENTS.md`, `verification_contract.json`, `.jarvis/production_grade_profile.json`, `.codex/config/repo.json`, `.codex/rules/release-readiness.md`, `.codex/hooks`, `.codex/reports/release-readiness.md`, product planning docs, deploy safety docs, CI workflow, Docker files, scripts, and contract tests.
 
+## Node 9766b177e040 Revalidation
+
+- The mission-reported `verification_contract` blocker is not present in the current tree: `verification_contract.json` exists, parses, is referenced from repo guidance, and is covered by `tests/contracts.test.mjs`.
+- The remaining production-grade profile gap is closed: `.jarvis/production_grade_profile.json` now includes a top-level `verification` section with minimum local checks, release-promotion checks, deploy-facing checks, regression controls, evidence policy, blocked-gate policy, and runtime notes.
+- The deployment metadata in `.jarvis/production_grade_profile.json` now points at the current 2026-05-21 release-readiness bundle.
+- Repo-local AI guidance now points future sessions to `.jarvis/production_grade_profile.json#verification` through `AGENTS.md`, `.codex/config/repo.json`, `.codex/rules/release-readiness.md`, and `.codex/hooks/pre-handoff.md`.
+- Contract tests were extended so removal of the profile verification section, its required fields, or the `.codex/config/repo.json` reference fails `npm test`.
+- Product PRFAQ and critical user journey templates remain present at `docs/product/prfaq.md` and `docs/product/critical-user-journeys.md`; no product-flow behavior was changed.
+- JSON parsing passed for `verification_contract.json`, `.jarvis/production_grade_profile.json`, and `.codex/config/repo.json`.
+- `bash -n .codex/hooks/preflight.sh` passed.
+- `git diff --check` passed.
+- Python syntax gate is not applicable: no Python files were found outside ignored/generated directories.
+- Targeted live-secret scan returned no matches for live Clerk keys, private key material, or production-labeled PostgreSQL URLs outside ignored/generated paths and release archives.
+- `npm ci` passed under local Node `v18.19.1` and npm `9.2.0`; npm emitted the known `EBADENGINE` warning for `eslint-visitor-keys@5.0.1`, which expects newer Node 20.x. CI and release verification remain contracted for Node 20.
+- `npm run audit:critical` exited 0. npm still reports 8 non-critical production vulnerabilities: 5 high and 3 moderate. Remediation requires separate behavior-tested dependency upgrade work.
+- `npm test` passed: 14 of 14 `node --test` contract and product behavior tests.
+- `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/full_stack_school?schema=public NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y2xlcmsuZXhhbXBsZSQ CLERK_SECRET_KEY=sk_test_placeholder npm run verify` passed: Prisma generate, Prisma validate, 14 tests, Next lint, TypeScript typecheck, and `next build`.
+- `.codex/hooks/preflight.sh` passed as the repo-local bridge self-test equivalent: it confirmed `verification_contract.json` exists, ran `npm run audit:critical`, and ran `npm run verify`.
+- `docker compose config --quiet` passed.
+- `PORT=3211 ... npm run start` plus `HEALTH_URL=http://127.0.0.1:3211/health npm run smoke:health` passed against the local production build, and the temporary process was stopped.
+- `docker build --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y2xlcmsuZXhhbXBsZSQ -t full-stack-school:release-node-9766b177e040 .` passed. Docker reported a `690.2kB` build context and completed using cached layers.
+- Local Docker shadow smoke passed for image `full-stack-school:release-node-9766b177e040`: `/health` passed before restart on `127.0.0.1:32802` and after `docker restart` on the re-read dynamic port `127.0.0.1:32803`.
+- Docker container healthcheck reached `healthy` for image `full-stack-school:release-node-9766b177e040` after restart validation.
+- `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:32804/full_stack_school?schema=public npx prisma migrate deploy` passed against disposable `postgres:15` and applied both existing migrations.
+- Rollback target confirmation passed: `.jarvis/production_grade_profile.json` reports `deploy_contract.rollback` as `previous_release`.
+- `git push --dry-run -u origin harden/release-readiness-baseline` failed with HTTP 403 for GitHub user `5h4d0wn1k`; PR publication remains blocked until a maintainer or writable remote pushes the branch.
+- Real `cynik` shadow deploy and credentialed smoke remain blocked by missing deployment credentials, target metadata, and service-manager access in this workspace.
+- Release bundle creation passed: `.codex/release/full-stack-school-release-readiness-baseline-2026-05-21.tar.gz` includes `AGENTS.md`, `verification_contract.json`, `.jarvis/production_grade_profile.json`, `.codex/config/repo.json`, `.codex/rules/release-readiness.md`, `.codex/hooks`, `.codex/reports/release-readiness.md`, product planning docs, deploy safety docs, CI workflow, Docker files, scripts, and contract tests.
+
+## Node ae31e37646e1 Revalidation
+
+- The dirty tree at pickup was scoped to eight release-readiness governance and contract-test files: `AGENTS.md`, `verification_contract.json`, `.jarvis/production_grade_profile.json`, `.codex/config/repo.json`, `.codex/hooks/pre-handoff.md`, `.codex/rules/release-readiness.md`, `.codex/reports/release-readiness.md`, and `tests/contracts.test.mjs`.
+- A targeted JSON/profile gate initially failed because `.jarvis/production_grade_profile.json` still lacked the required top-level `release` section. This blocker is now closed.
+- Added the required top-level `release` section to `.jarvis/production_grade_profile.json` with delivery path, advisory-first strategy, risk classification, promotion gates, deploy sequence, abort conditions, rollback posture, and evidence requirements.
+- Repo-local AI guidance now points future sessions to `.jarvis/production_grade_profile.json#release` through `AGENTS.md`, `.codex/config/repo.json`, `.codex/rules/release-readiness.md`, and `.codex/hooks/pre-handoff.md`.
+- Contract tests were extended so removal of the profile `release` section, its required fields, rollback target, promotion gates, abort conditions, or `.codex/config/repo.json` reference fails `npm test`.
+- Product PRFAQ and critical user journey templates remain present at `docs/product/prfaq.md` and `docs/product/critical-user-journeys.md`; no product-flow behavior was changed.
+- JSON parsing passed for `verification_contract.json`, `.jarvis/production_grade_profile.json`, and `.codex/config/repo.json`, and required profile sections `release`, `architecture`, `verification`, `agile`, and `deploy_contract` were confirmed.
+- `bash -n .codex/hooks/preflight.sh` passed.
+- `git diff --check` passed.
+- Python syntax gate is not applicable: no Python files were found outside ignored/generated directories.
+- Targeted live-secret scan returned no matches for live Clerk keys, private key material, or production-labeled PostgreSQL URLs outside ignored/generated paths and release archives.
+- `npm test` passed: 14 of 14 `node --test` contract and product behavior tests.
+- `npm ci` passed under local Node `v18.19.1` and npm `9.2.0`; npm emitted the known `EBADENGINE` warning for `eslint-visitor-keys@5.0.1`, which expects newer Node 20.x. CI and release verification remain contracted for Node 20.
+- `npm run audit:critical` exited 0. npm still reports 8 non-critical production vulnerabilities: 5 high and 3 moderate. Remediation requires separate behavior-tested dependency upgrade work.
+- `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/full_stack_school?schema=public NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y2xlcmsuZXhhbXBsZSQ CLERK_SECRET_KEY=sk_test_placeholder npm run verify` passed: Prisma generate, Prisma validate, 14 tests, Next lint, TypeScript typecheck, and `next build`.
+- `.codex/hooks/preflight.sh` passed as the repo-local bridge self-test equivalent: it confirmed `verification_contract.json` exists, ran `npm run audit:critical`, and ran `npm run verify`.
+- `docker compose config --quiet` passed.
+- `PORT=3212 ... npm run start` plus `HEALTH_URL=http://127.0.0.1:3212/health npm run smoke:health` passed against the local production build, and the temporary process was stopped.
+- `docker build --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y2xlcmsuZXhhbXBsZSQ -t full-stack-school:release-node-ae31e37646e1 .` passed. Docker reported a `690.2kB` build context and completed using cached layers.
+- Local Docker shadow smoke passed for image `full-stack-school:release-node-ae31e37646e1`: `/health` passed before restart on `127.0.0.1:32805` and after `docker restart` on the re-read dynamic port `127.0.0.1:32807`.
+- Docker container healthcheck reached `healthy` after restart validation for image `full-stack-school:release-node-ae31e37646e1`.
+- `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:32811/full_stack_school?schema=public npx prisma migrate deploy` passed against disposable `postgres:15` and applied both existing migrations.
+- Rollback target confirmation passed: `.jarvis/production_grade_profile.json` reports both `deploy_contract.rollback` and `release.rollback.runtime` as `previous_release`.
+- `git branch -vv` confirmed `harden/release-readiness-baseline` still does not track an upstream remote. `git push --dry-run -u origin harden/release-readiness-baseline` failed with HTTP 403 for GitHub user `5h4d0wn1k`, so PR publication remains blocked until a maintainer or writable remote pushes the branch.
+- Real `cynik` shadow deploy and credentialed smoke remain blocked by missing deployment credentials, target metadata, and service-manager access in this workspace.
+- Release bundle creation passed: `.codex/release/full-stack-school-release-readiness-baseline-2026-05-21.tar.gz` includes `AGENTS.md`, `verification_contract.json`, `.jarvis/production_grade_profile.json`, `.codex/config/repo.json`, `.codex/rules/release-readiness.md`, `.codex/hooks`, `.codex/reports/release-readiness.md`, product planning docs, deploy safety docs, CI workflow, Docker files, scripts, and contract tests.
+
 ## Rollback Note
 
-This hardening is rollbackable by reverting the pull request or redeploying the previous release artifact. Runtime rollback remains `previous_release` per `verification_contract.json` and `.jarvis/production_grade_profile.json`. The agile/profile, AGENTS, `.codex`, and contract-test updates are advisory/configuration-only and can be reverted without database or runtime state changes. The lockfile sync from the previous baseline remains rollbackable by reverting `package-lock.json` together with the existing dependency-baseline change in `package.json`. No Prisma migration, production deploy, or data change is included in this node.
+This hardening is rollbackable by reverting the pull request or redeploying the previous release artifact. Runtime rollback remains `previous_release` per `verification_contract.json` and `.jarvis/production_grade_profile.json`. The release/profile, verification/profile, agile/profile, AGENTS, `.codex`, and contract-test updates are advisory/configuration-only and can be reverted without database or runtime state changes. The lockfile sync from the previous baseline remains rollbackable by reverting `package-lock.json` together with the existing dependency-baseline change in `package.json`. No Prisma migration, production deploy, or data change is included in this node.
