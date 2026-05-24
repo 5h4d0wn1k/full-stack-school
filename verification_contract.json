@@ -4,6 +4,7 @@
   "contract_type": "release_readiness_verification",
   "default_branch": "main",
   "delivery_path": "branch -> pull request -> CI checks -> reviewed merge -> deploy",
+  "agile_work_item_contract": "agile_work_item.json",
   "runtime": {
     "framework": "Next.js App Router",
     "node": "20.x for CI and release verification",
@@ -57,9 +58,9 @@
   },
   "known_gaps": [
     "Product behavior regression tests and release-contract tests are green under npm run verify, but no browser end-to-end suite exists for authenticated dashboard flows.",
-    "Production dependency audit critical gate is clear for the current locked baseline; npm audit --omit=dev still reports 5 high and 3 moderate production vulnerabilities. The remaining fixes require separate behavior-tested major-upgrade work.",
+    "Production dependency audit critical gate is clear for the current locked baseline; npm audit --omit=dev currently reports 9 high and 3 moderate production vulnerabilities. The remaining fixes require separate behavior-tested major-upgrade work.",
     "Local Docker release image build, /health smoke, and restart smoke pass with placeholder Clerk environment values after re-reading Docker's dynamic host port; real cynik shadow deploy and credentialed smoke remain blocked by missing deployment credentials and target metadata.",
-    ".dockerignore reduced the Docker build context to about 690.2kB during local verification; keep generated artifacts, local evidence, and secrets out of future image contexts."
+    ".dockerignore reduced the Docker build context to about 690kB during local verification; keep generated artifacts, local evidence, and secrets out of future image contexts."
   ],
   "rollback": {
     "primary": "Revert the pull request or redeploy the previous release artifact.",

@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "workspace": "full-stack-school",
+  "contract_type": "agile_work_item",
+  "delivery_path": "branch -> pull request -> CI checks -> reviewed merge -> deploy",
+  "source_of_truth": {
+    "production_grade_profile": ".jarvis/production_grade_profile.json#agile",
+    "product_brief": "docs/product/prfaq.md",
+    "critical_user_journeys": "docs/product/critical-user-journeys.md",
+    "verification_contract": "verification_contract.json",
+    "release_readiness_report": ".codex/reports/release-readiness.md"
+  },
+  "required_fields": [
+    "target_role",
+    "user_problem",
+    "critical_user_journey",
+    "success_metric",
+    "affected_surfaces",
+    "release_risk",
+    "verification_plan",
+    "rollback_or_abort_condition"
+  ],
+  "definition_of_ready": [
+    "Target school role, user problem, and success metric are named.",
+    "Primary critical user journey and failure-sensitive points are documented or explicitly referenced.",
+    "Affected routes, Prisma models, auth roles, middleware paths, Docker or CI surfaces, and deploy surfaces are identified.",
+    "Release-risky boundaries from .jarvis/production_grade_profile.json#architecture are named when auth, Prisma, middleware, Docker, CI, or deploy behavior may change.",
+    "Required verification commands are selected from verification_contract.json before implementation starts.",
+    "Rollback or release-abort condition is explicit before broad implementation starts."
+  ],
+  "definition_of_done": [
+    "Behavior changes are covered by focused tests or documented as intentionally unchanged.",
+    "The selected verification gates pass, or blocked gates and residual risk are recorded in .codex/reports/release-readiness.md.",
+    "Product-facing pull requests name the target role, critical user journey, success metric, verification evidence, and rollback or abort condition.",
+    "Deploy-facing changes include /health smoke evidence, restart or rollout evidence where applicable, and rollback notes.",
+    "No secrets, .env files, database dumps, generated build artifacts, or real student/family data are committed.",
+    "The pull request remains small enough to review and can be reverted without unrelated behavior changes."
+  ],
+  "risk_classification": {
+    "low": "Documentation, advisory config, contract tests, and release evidence with no runtime behavior change.",
+    "medium": "Application behavior or dependency changes that preserve schema, auth, middleware, and deploy contracts.",
+    "high": "Auth, Prisma schema or migration, middleware, Docker, CI, deployment, data access, or role-routing changes."
+  },
+  "pull_request_contract": {
+    "must_include": [
+      "target_role",
+      "critical_user_journey",
+      "success_metric",
+      "verification_evidence",
+      "rollback_or_abort_condition",
+      "known_blockers_or_residual_risk"
+    ],
+    "default_review_focus": [
+      "regression risk",
+      "cross-role data visibility",
+      "Prisma and migration safety",
+      "Clerk auth and role routing",
+      "release gate evidence",
+      "rollback posture"
+    ]
+  },
+  "blocked_work_policy": "Do not broaden implementation when Definition of Ready is not met. Record the blocker, owner gap, or missing evidence in .codex/reports/release-readiness.md and split the work into a smaller ready item.",
+  "rollback": {
+    "primary": "Revert the pull request or redeploy previous_release.",
+    "database": "Use backward-compatible Prisma migrations; do not run destructive database rollback without a tested restore plan."
+  }
+}

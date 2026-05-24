@@ -18,6 +18,7 @@
 
 # release evidence bundles
 .codex/release/
+.codex/evidence/
 
 # misc
 .DS_Store

@@ -13,6 +13,7 @@
     "current_hardening_branch": "harden/release-readiness-baseline",
     "delivery_path": "branch -> pull request -> CI checks -> reviewed merge -> deploy",
     "verification_contract": "verification_contract.json",
+    "agile_work_item_contract": "agile_work_item.json",
     "ai_operating_guidance": [
       "AGENTS.md",
       ".codex/config/repo.json",
@@ -61,6 +62,98 @@
     ],
     "decision_policy": "Prefer small, reversible changes that preserve role-specific dashboard behavior. Require explicit design notes, verification evidence, and rollback notes for auth, Prisma, middleware, Docker, CI, or deployment changes."
   },
+  "reliability": {
+    "service_level_intent": "Protect role-specific dashboard availability, data correctness, and cross-role data separation before expanding product scope.",
+    "health_model": {
+      "process_health": "/health returns status ok without requiring Clerk, Prisma, or PostgreSQL so release automation can distinguish app-process health from dependency health.",
+      "dependency_health": "Prisma, PostgreSQL, and Clerk health are verified through migration gates, release checks, authenticated journey smoke, and provider/runtime logs rather than the process health route.",
+      "post_deploy_smoke": "Run npm run smoke:health against /health, then verify the highest-risk authenticated dashboard journey available in the target environment."
+    },
+    "slo_candidates": [
+      "/health process check success: 99.9% monthly after production launch.",
+      "Authenticated dashboard page availability: 99.5% monthly after production launch.",
+      "Critical dashboard server response target: p95 under 1000 ms after warm start.",
+      "Cross-role data visibility incidents: zero known incidents."
+    ],
+    "failure_modes": [
+      "Clerk outage, missing session, or invalid role metadata blocks authenticated dashboard access.",
+      "PostgreSQL connection, migration, or Prisma Client failure blocks Prisma-backed pages.",
+      "Role routing regression exposes or hides records across admin, teacher, student, and parent surfaces.",
+      "Build-time or runtime environment gaps break production builds, starts, or authenticated views.",
+      "Docker or service-manager restart changes remap ports or report stale health evidence."
+    ],
+    "observability": {
+      "required_signals": [
+        "application start and restart status",
+        "/health smoke result",
+        "Next.js server errors",
+        "Prisma migration deploy logs",
+        "Clerk authentication and authorization failure signals where available",
+        "highest-risk authenticated journey smoke result"
+      ],
+      "blocked_signals": [
+        "Production dashboards and alerting targets are not available in this workspace.",
+        "Browser end-to-end journey telemetry is not implemented.",
+        "Production traffic profile and capacity baseline are not available in this workspace."
+      ]
+    },
+    "operational_response": {
+      "owner": "release_manager from owners.release_manager",
+      "abort": "Stop promotion when CI, migration, build, health smoke, critical audit, or role-access verification fails.",
+      "rollback": "Use previous_release runtime rollback or PR revert; Prisma changes require a backward-compatible migration plan and tested restore path before destructive schema work."
+    },
+    "capacity_assumptions": [
+      "The Next.js app is stateless aside from Clerk and PostgreSQL dependencies.",
+      "No production traffic or concurrency profile is available in this workspace.",
+      "Container healthchecks probe only dependency-light process health.",
+      "Scale and performance claims require target-environment metrics before release promotion."
+    ]
+  },
+  "ownership": {
+    "service_scope": {
+      "owns": [
+        "Next.js school management dashboard application code.",
+        "Repo-local release-readiness guidance, verification contract, and CI gates.",
+        "Application-level /health process check and smoke script."
+      ],
+      "does_not_own": [
+        "Clerk provider availability or account configuration outside this repository.",
+        "Production PostgreSQL hosting, backups, or restore execution outside this workspace.",
+        "cynik service-manager credentials, target metadata, or production promotion approval."
+      ]
+    },
+    "responsible_roles": {
+      "engineering_owner": "owners.engineering",
+      "release_manager": "owners.release_manager",
+      "incident_commander": "owners.incident_commander"
+    },
+    "operational_expectations": [
+      "Release manager confirms CI evidence, rollback target, and required environment variables before promotion.",
+      "Engineering owner reviews auth, Prisma, middleware, Docker, CI, and deployment boundary changes before merge.",
+      "Incident commander coordinates rollback, customer-impact assessment, and follow-up notes for production incidents."
+    ],
+    "escalation_path": [
+      "Start with the release manager for failed release gates or unclear promotion evidence.",
+      "Escalate to the engineering owner for code, data, auth, or migration defects.",
+      "Escalate to the incident commander for production-impacting outages, cross-role data exposure, or rollback decisions."
+    ],
+    "runbooks": [
+      "AGENTS.md",
+      ".codex/hooks/pre-handoff.md",
+      ".codex/reports/release-readiness.md",
+      "docs/operations/deploy-safety.md"
+    ],
+    "handoff_requirements": [
+      "Name exact commands run and outcomes.",
+      "Name blocked gates and residual risk.",
+      "Confirm rollback path as PR revert or previous_release redeploy.",
+      "Record whether real deployment credentials, service manager, and target metadata were available."
+    ],
+    "open_owner_gaps": [
+      "Named human owners are still TBD in owners.* and must be resolved before production promotion.",
+      "Production alert destinations, dashboard links, and service-manager runbooks are not available in this workspace."
+    ]
+  },
   "verification": {
     "contract_file": "verification_contract.json",
     "default_gate": "npm run verify",
@@ -103,6 +196,7 @@
   "release": {
     "default_path": "branch -> pull request -> CI checks -> reviewed merge -> deploy",
     "strategy": "Advisory-first hardening on a branch, followed by maintainer PR review and release-owner promotion after evidence review.",
+    "rollback_action": "Redeploy previous_release or revert the pull request; do not run destructive database rollback without a tested restore plan.",
     "risk_classification": {
       "current_hardening": "configuration, documentation, contract tests, and release evidence only",
       "release_risky_surfaces": [
@@ -151,6 +245,7 @@
     ]
   },
   "agile": {
+    "work_item_contract": "agile_work_item.json",
     "planning_cadence": "Small, reviewable pull requests. Major feature work starts with PRFAQ/problem framing and critical user journey mapping before implementation.",
     "backlog_policy": "Prioritize work that reduces release risk, protects role-based school workflows, or improves evidence for production decisions.",
     "work_item_flow": [
@@ -188,6 +283,34 @@
     ],
     "retro_policy": "Capture reusable release lessons in AGENTS.md, .codex rules, docs/operations, or the release-readiness report before closing major nodes."
   },
+  "continuous_improvement": {
+    "maturity_goal": "Advance from discovered toward self_improving through advisory-first, PR-first, evidence-backed changes that preserve current product behavior.",
+    "ratchet_loops": [
+      "Quarantine dirty worktree state before unrelated growth by using a branch, pull request, or timestamped evidence bundle.",
+      "Convert repeated release blockers into contract tests, repo-local guidance, or runbook updates.",
+      "Update .codex/reports/release-readiness.md with exact verification outcomes, blocked gates, and residual risks after each hardening pass.",
+      "Keep product-facing work tied to PRFAQ/problem framing and critical user journey evidence before broad implementation."
+    ],
+    "scorecard_inputs": [
+      "required profile sections present and covered by tests",
+      "verification_contract.json present and referenced by AGENTS.md and .codex config",
+      "CI, audit, Prisma, build, smoke, and rollback evidence recorded",
+      "known blockers classified as active, blocked by credentials, or follow-up work",
+      "release-readiness report updated before handoff"
+    ],
+    "learning_capture": [
+      "Store reusable operating lessons in AGENTS.md, .codex/rules, docs/operations, or docs/product.",
+      "Store node-specific evidence in .codex/reports or .codex/evidence instead of mixing it into product code.",
+      "Prefer new contract-test assertions when a governance requirement has failed more than once."
+    ],
+    "recurring_blocker_policy": "When a mission blocker repeats, classify it as active, stale, credential-blocked, or superseded before retrying, then add evidence or a guardrail that prevents the same blocker from being rediscovered as unresolved.",
+    "next_improvement_candidates": [
+      "Add browser end-to-end coverage for authenticated dashboard journeys.",
+      "Resolve non-critical production dependency advisories through behavior-tested dependency upgrade work.",
+      "Fill named human owners, alert destinations, and cynik service-manager runbook links before production promotion.",
+      "Publish the hardening branch through a writable remote so PR checks and maintainer review can run."
+    ]
+  },
   "application": {
     "name": "Lama Dev School Management Dashboard",
     "type": "school management dashboard",
@@ -201,7 +324,7 @@
   "deploy_contract": {
     "runtime_target": "cynik",
     "runtime_artifact": "Next.js production build or container image after verification",
-    "runtime_tar": ".codex/release/full-stack-school-release-readiness-baseline-2026-05-21.tar.gz",
+    "runtime_tar": ".codex/release/full-stack-school-release-readiness-node-22112d1fc6cc-2026-05-24.tar.gz",
     "env_file_source": "process environment supplied by deployment platform; committed .env files are forbidden",
     "healthcheck": "/health",
     "rollback": "previous_release",

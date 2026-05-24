@@ -11,6 +11,13 @@ else
   exit 1
 fi
 
+if [ -f agile_work_item.json ]; then
+  echo "agile_work_item.json present"
+else
+  echo "agile_work_item.json missing" >&2
+  exit 1
+fi
+
 if [ -f package.json ]; then
   npm run audit:critical
   npm run verify

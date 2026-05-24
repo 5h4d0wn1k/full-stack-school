@@ -16,15 +16,18 @@ This repository is a Next.js school management dashboard using Clerk, Prisma, an
 
 - Use `.jarvis/production_grade_profile.json` as the repo-local production-grade profile.
 - For auth, Prisma, middleware, Docker, CI, or deploy changes, reference the `architecture` section in `.jarvis/production_grade_profile.json` and name the affected boundary.
+- For reliability, healthcheck, restart, observability, or incident-response changes, reference the `reliability` section in `.jarvis/production_grade_profile.json`.
+- For ownership, escalation, handoff, or runbook changes, reference the `ownership` section in `.jarvis/production_grade_profile.json`.
+- For recurring blockers, quality ratchets, scorecards, or retro follow-up, reference the `continuous_improvement` section in `.jarvis/production_grade_profile.json`.
 - Before major product or workflow work, update or reference `docs/product/prfaq.md` and `docs/product/critical-user-journeys.md`.
-- Apply the agile Definition of Ready and Definition of Done in `.jarvis/production_grade_profile.json` before starting broad implementation.
+- Apply the agile Definition of Ready and Definition of Done in `.jarvis/production_grade_profile.json` and `agile_work_item.json` before starting broad implementation.
 - Product-facing pull requests should name the target role, critical user journey, success metric, verification evidence, and rollback or abort condition.
 
 ## Verification Contract
 
 Follow `verification_contract.json`.
 
-Also check the top-level `release` and `verification` sections in `.jarvis/production_grade_profile.json` when choosing release gates, rollback posture, or documenting blocked checks.
+Also check `agile_work_item.json` and the top-level `release`, `verification`, `reliability`, `ownership`, `continuous_improvement`, and `agile` sections in `.jarvis/production_grade_profile.json` when choosing release gates, `release.rollback_action`, health evidence, owners, ratchet evidence, Ready/Done evidence, or documenting blocked checks.
 
 Minimum local checks for most changes:
 

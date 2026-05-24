@@ -7,15 +7,51 @@ const readText = (path) => readFileSync(path, "utf8");
 
 test("release readiness contract files are present and parseable", () => {
   const verificationContract = readJson("verification_contract.json");
+  const agileWorkItem = readJson("agile_work_item.json");
   const productionProfile = readJson(".jarvis/production_grade_profile.json");
   const codexConfig = readJson(".codex/config/repo.json");
 
   assert.equal(verificationContract.workspace, "full-stack-school");
+  assert.equal(verificationContract.agile_work_item_contract, "agile_work_item.json");
+  assert.equal(agileWorkItem.workspace, "full-stack-school");
+  assert.equal(agileWorkItem.contract_type, "agile_work_item");
+  assert.equal(
+    agileWorkItem.delivery_path,
+    "branch -> pull request -> CI checks -> reviewed merge -> deploy"
+  );
+  assert.equal(
+    agileWorkItem.source_of_truth.production_grade_profile,
+    ".jarvis/production_grade_profile.json#agile"
+  );
+  for (const required of [
+    "target_role",
+    "critical_user_journey",
+    "success_metric",
+    "verification_plan",
+    "rollback_or_abort_condition",
+  ]) {
+    assert.ok(
+      agileWorkItem.required_fields.includes(required),
+      `agile work item required_fields should include ${required}`
+    );
+  }
+  assert.ok(
+    agileWorkItem.definition_of_ready.some((item) =>
+      item.includes("Target school role")
+    ),
+    "agile work item should name the target role in Definition of Ready"
+  );
+  assert.ok(
+    agileWorkItem.definition_of_done.some((item) => item.includes("/health smoke")),
+    "agile work item Definition of Done should include deploy-facing smoke evidence"
+  );
+  assert.equal(agileWorkItem.rollback.primary, "Revert the pull request or redeploy previous_release.");
   assert.equal(verificationContract.runtime.healthcheck, "/health");
   assert.equal(verificationContract.environment.env_file_source.includes("process environment"), true);
 
   assert.equal(productionProfile.workspace, "full-stack-school");
   assert.equal(productionProfile.schema_version, 1);
+  assert.equal(productionProfile.repo_contract.agile_work_item_contract, "agile_work_item.json");
   assert.equal(productionProfile.product.name, "Lama Dev School Management Dashboard");
   assert.equal(productionProfile.product.product_brief, "docs/product/prfaq.md");
   assert.equal(
@@ -87,6 +123,7 @@ test("release readiness contract files are present and parseable", () => {
   );
   for (const required of [
     "strategy",
+    "rollback_action",
     "risk_classification",
     "promotion_gates",
     "deploy_sequence",
@@ -99,6 +136,8 @@ test("release readiness contract files are present and parseable", () => {
       `production profile release.${required} is required`
     );
   }
+  assert.match(productionProfile.release.rollback_action, /previous_release/);
+  assert.match(productionProfile.release.rollback_action, /pull request/);
   assert.equal(productionProfile.release.rollback.runtime, "previous_release");
   assert.ok(
     productionProfile.release.promotion_gates.includes("npm run verify"),
@@ -110,10 +149,100 @@ test("release readiness contract files are present and parseable", () => {
     ),
     "release abort conditions should include the critical audit gate"
   );
+  for (const required of [
+    "service_level_intent",
+    "health_model",
+    "slo_candidates",
+    "failure_modes",
+    "observability",
+    "operational_response",
+    "capacity_assumptions",
+  ]) {
+    assert.ok(
+      productionProfile.reliability[required],
+      `production profile reliability.${required} is required`
+    );
+  }
+  assert.match(productionProfile.reliability.health_model.process_health, /\/health/);
+  assert.ok(
+    productionProfile.reliability.failure_modes.some((item) => item.includes("Clerk")),
+    "reliability failure modes should include Clerk dependency risk"
+  );
+  assert.ok(
+    productionProfile.reliability.observability.required_signals.some((item) =>
+      item.includes("/health")
+    ),
+    "reliability observability signals should include /health smoke"
+  );
+  assert.match(productionProfile.reliability.operational_response.rollback, /previous_release/);
+  for (const required of [
+    "service_scope",
+    "responsible_roles",
+    "operational_expectations",
+    "escalation_path",
+    "runbooks",
+    "handoff_requirements",
+    "open_owner_gaps",
+  ]) {
+    assert.ok(
+      productionProfile.ownership[required],
+      `production profile ownership.${required} is required`
+    );
+  }
+  assert.equal(productionProfile.ownership.responsible_roles.release_manager, "owners.release_manager");
+  assert.ok(
+    productionProfile.ownership.service_scope.owns.some((item) => item.includes("/health")),
+    "ownership service scope should include the app health check"
+  );
+  assert.ok(
+    productionProfile.ownership.escalation_path.some((item) =>
+      item.includes("incident commander")
+    ),
+    "ownership escalation path should include incident commander escalation"
+  );
+  assert.ok(
+    productionProfile.ownership.runbooks.includes("docs/operations/deploy-safety.md"),
+    "ownership runbooks should include deploy safety docs"
+  );
+  assert.ok(
+    productionProfile.ownership.open_owner_gaps.some((item) => item.includes("TBD")),
+    "ownership should record unresolved human owner gaps"
+  );
+  for (const required of [
+    "maturity_goal",
+    "ratchet_loops",
+    "scorecard_inputs",
+    "learning_capture",
+    "recurring_blocker_policy",
+    "next_improvement_candidates",
+  ]) {
+    assert.ok(
+      productionProfile.continuous_improvement[required],
+      `production profile continuous_improvement.${required} is required`
+    );
+  }
+  assert.match(productionProfile.continuous_improvement.maturity_goal, /self_improving/);
+  assert.ok(
+    productionProfile.continuous_improvement.ratchet_loops.some((item) =>
+      item.includes("dirty worktree")
+    ),
+    "continuous improvement ratchets should preserve dirty-worktree quarantine"
+  );
+  assert.ok(
+    productionProfile.continuous_improvement.scorecard_inputs.some((item) =>
+      item.includes("verification_contract.json")
+    ),
+    "continuous improvement scorecard should include verification contract evidence"
+  );
+  assert.match(
+    productionProfile.continuous_improvement.recurring_blocker_policy,
+    /active, stale, credential-blocked, or superseded/
+  );
   assert.equal(
     productionProfile.agile.release_planning.default_path,
     "branch -> pull request -> CI checks -> reviewed merge -> deploy"
   );
+  assert.equal(productionProfile.agile.work_item_contract, "agile_work_item.json");
   for (const required of [
     "planning_cadence",
     "backlog_policy",
@@ -149,9 +278,26 @@ test("release readiness contract files are present and parseable", () => {
     ".jarvis/production_grade_profile.json#release"
   );
   assert.equal(
+    codexConfig.production_profile_release_rollback_action,
+    ".jarvis/production_grade_profile.json#release.rollback_action"
+  );
+  assert.equal(
     codexConfig.production_profile_verification,
     ".jarvis/production_grade_profile.json#verification"
   );
+  assert.equal(
+    codexConfig.production_profile_reliability,
+    ".jarvis/production_grade_profile.json#reliability"
+  );
+  assert.equal(
+    codexConfig.production_profile_ownership,
+    ".jarvis/production_grade_profile.json#ownership"
+  );
+  assert.equal(
+    codexConfig.production_profile_continuous_improvement,
+    ".jarvis/production_grade_profile.json#continuous_improvement"
+  );
+  assert.equal(codexConfig.agile_work_item_contract, "agile_work_item.json");
   assert.equal(codexConfig.product_brief, "docs/product/prfaq.md");
   assert.equal(codexConfig.critical_user_journeys, "docs/product/critical-user-journeys.md");
   assert.equal(codexConfig.deploy_contract.healthcheck, "/health");
@@ -182,10 +328,18 @@ test("repo guidance names the PR-first and rollback posture", () => {
   assert.match(agents, /pull request/i);
   assert.match(agents, /PRFAQ/i);
   assert.match(agents, /critical user journey/i);
+  assert.match(agents, /agile_work_item\.json/);
   assert.match(agents, /architecture/i);
+  assert.match(agents, /reliability/i);
+  assert.match(agents, /ownership/i);
+  assert.match(agents, /continuous_improvement/i);
   assert.match(rules, /rollback/i);
   assert.match(rules, /Definition of Ready/i);
+  assert.match(rules, /agile_work_item\.json/);
   assert.match(rules, /architecture boundaries/i);
+  assert.match(rules, /health model/i);
+  assert.match(rules, /release owner/i);
+  assert.match(rules, /scorecard/i);
   assert.match(report, /Delivery Blockers/i);
 });
 

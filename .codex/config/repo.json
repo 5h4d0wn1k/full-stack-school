@@ -7,7 +7,12 @@
   "verification_contract": "verification_contract.json",
   "production_grade_profile": ".jarvis/production_grade_profile.json",
   "production_profile_release": ".jarvis/production_grade_profile.json#release",
+  "production_profile_release_rollback_action": ".jarvis/production_grade_profile.json#release.rollback_action",
   "production_profile_verification": ".jarvis/production_grade_profile.json#verification",
+  "production_profile_reliability": ".jarvis/production_grade_profile.json#reliability",
+  "production_profile_ownership": ".jarvis/production_grade_profile.json#ownership",
+  "production_profile_continuous_improvement": ".jarvis/production_grade_profile.json#continuous_improvement",
+  "agile_work_item_contract": "agile_work_item.json",
   "product_brief": "docs/product/prfaq.md",
   "critical_user_journeys": "docs/product/critical-user-journeys.md",
   "deploy_contract": {
