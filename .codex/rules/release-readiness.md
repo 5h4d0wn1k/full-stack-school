@@ -5,6 +5,7 @@ These repo-local rules are meant to keep future AI and human changes aligned wit
 ## Delivery
 
 - Work on a branch and use pull requests for normal code, config, and workflow changes.
+- Before handoff, check upstream tracking with `git branch -vv`; if the branch is unpublished, record the writable-remote or maintainer-push blocker in `.codex/reports/release-readiness.md`.
 - Keep production-impacting changes additive or rollbackable unless an approved migration plan exists.
 - Do not deploy directly from an AI session. Produce evidence, then let the release owner approve deployment.
 

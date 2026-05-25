@@ -3,8 +3,9 @@
   "workspace": "full-stack-school",
   "profile": "production_grade",
   "maturity": {
-    "current_stage": "discovered",
+    "current_stage": "scaffolded",
     "starting_score_percent": 18,
+    "current_score_percent": 27,
     "target_stage": "self_improving",
     "ratchet_policy": "Advisory-first, PR-first, evidence-backed changes only."
   },
@@ -324,7 +325,7 @@
   "deploy_contract": {
     "runtime_target": "cynik",
     "runtime_artifact": "Next.js production build or container image after verification",
-    "runtime_tar": ".codex/release/full-stack-school-release-readiness-node-22112d1fc6cc-2026-05-24.tar.gz",
+    "runtime_tar": ".codex/release/full-stack-school-release-readiness-node-6365fddfd4b6-2026-05-25.tar.gz",
     "env_file_source": "process environment supplied by deployment platform; committed .env files are forbidden",
     "healthcheck": "/health",
     "rollback": "previous_release",

@@ -7,6 +7,7 @@ This repository is a Next.js school management dashboard using Clerk, Prisma, an
 ## Working Rules
 
 - Use a branch and pull request for normal code, config, workflow, and documentation changes.
+- If a work branch lacks an upstream remote, document the PR publication blocker and use a writable fork or maintainer push rather than bypassing review.
 - Keep diffs scoped. Do not rewrite product flows, auth, Prisma models, or deploy files unless the task explicitly asks for that surface.
 - Inspect the current code before changing behavior.
 - Do not commit secrets, `.env` files, database dumps, or real student/family data.
