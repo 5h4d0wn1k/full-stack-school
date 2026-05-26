@@ -40,6 +40,7 @@ These repo-local rules are meant to keep future AI and human changes aligned wit
 ## Data And Secrets
 
 - Never commit `.env`, real Clerk keys, production database URLs, dumps, or student/family data.
+- Confirm `env_file_source` is documented in `verification_contract.json`, `.jarvis/production_grade_profile.json#deploy_contract`, and `.codex/config/repo.json#deploy_contract`; block release handoff if the environment source is missing or points at a committed env file.
 - Treat Prisma migrations as production-affecting changes that require backward compatibility and rollback notes.
 - Do not run destructive database commands against shared or production databases from this workspace.
 

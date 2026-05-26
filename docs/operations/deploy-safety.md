@@ -14,6 +14,10 @@ Container deployment is guarded but still needs release-owner signoff:
 
 This follows Prisma's production guidance: `migrate dev` is development-only, while production and test environments use `migrate deploy`. See [Prisma Migrate: development and production](https://www.prisma.io/docs/orm/prisma-migrate/workflows/development-and-production).
 
+## Environment Source
+
+The deploy contract and workspace config define `env_file_source` as process environment supplied by the deployment platform. Do not use committed `.env` files for release, CI, shadow deploy, or production credentials.
+
 ## Rollout Strategy
 
 Use branch -> pull request -> CI -> reviewed merge. For production, deploy only after a release owner confirms secrets, database target, migration plan, and rollback artifact.

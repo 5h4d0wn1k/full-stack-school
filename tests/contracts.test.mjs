@@ -47,7 +47,14 @@ test("release readiness contract files are present and parseable", () => {
   );
   assert.equal(agileWorkItem.rollback.primary, "Revert the pull request or redeploy previous_release.");
   assert.equal(verificationContract.runtime.healthcheck, "/health");
-  assert.equal(verificationContract.environment.env_file_source.includes("process environment"), true);
+  for (const source of [
+    verificationContract.environment.env_file_source,
+    productionProfile.deploy_contract.env_file_source,
+    codexConfig.deploy_contract.env_file_source,
+  ]) {
+    assert.match(source, /process environment|deployment platform/);
+    assert.match(source, /\.env|env file/i);
+  }
 
   assert.equal(productionProfile.workspace, "full-stack-school");
   assert.equal(productionProfile.schema_version, 1);
@@ -271,13 +278,13 @@ test("release readiness contract files are present and parseable", () => {
   );
   assert.equal(productionProfile.deploy_contract.healthcheck, "/health");
   assert.equal(productionProfile.deploy_contract.rollback, "previous_release");
-  assert.equal(
-    productionProfile.deploy_contract.env_file_source.includes("process environment"),
-    true
-  );
 
   assert.equal(codexConfig.workspace, "full-stack-school");
   assert.equal(codexConfig.git_hygiene.upstream_tracking_required_for_pr, true);
+  assert.equal(
+    codexConfig.git_hygiene.current_blocker_documented_in,
+    ".codex/reports/release-readiness.md#node-7217a70e3c72-revalidation"
+  );
   assert.match(codexConfig.git_hygiene.delivery_remote_policy, /writable remote/);
   assert.equal(codexConfig.verification_contract, "verification_contract.json");
   assert.equal(codexConfig.production_grade_profile, ".jarvis/production_grade_profile.json");
@@ -310,7 +317,6 @@ test("release readiness contract files are present and parseable", () => {
   assert.equal(codexConfig.critical_user_journeys, "docs/product/critical-user-journeys.md");
   assert.equal(codexConfig.deploy_contract.healthcheck, "/health");
   assert.equal(codexConfig.deploy_contract.rollback, "previous_release");
-  assert.equal(codexConfig.deploy_contract.env_file_source.includes("process environment"), true);
 });
 
 test("ci workflow covers the required release gates", () => {
@@ -348,10 +354,19 @@ test("repo guidance names the PR-first and rollback posture", () => {
   assert.match(rules, /agile_work_item\.json/);
   assert.match(rules, /architecture boundaries/i);
   assert.match(rules, /health model/i);
+  assert.match(rules, /env_file_source/);
   assert.match(rules, /release owner/i);
   assert.match(rules, /scorecard/i);
   assert.match(report, /Delivery Blockers/i);
   assert.match(report, /upstream remote/i);
+});
+
+test("deploy safety docs name the environment source contract", () => {
+  const deploySafety = readText("docs/operations/deploy-safety.md");
+
+  assert.match(deploySafety, /env_file_source/);
+  assert.match(deploySafety, /process environment/);
+  assert.match(deploySafety, /committed `\.env` files/);
 });
 
 test("docker compose database wiring is internally consistent", () => {

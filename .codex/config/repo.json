@@ -7,7 +7,7 @@
   "git_hygiene": {
     "delivery_remote_policy": "Publish hardening branches through a writable remote or maintainer push before PR checks; do not bypass PR-first delivery by pushing directly to protected main.",
     "upstream_tracking_required_for_pr": true,
-    "current_blocker_documented_in": ".codex/reports/release-readiness.md#node-6365fddfd4b6-revalidation"
+    "current_blocker_documented_in": ".codex/reports/release-readiness.md#node-7217a70e3c72-revalidation"
   },
   "verification_contract": "verification_contract.json",
   "production_grade_profile": ".jarvis/production_grade_profile.json",
