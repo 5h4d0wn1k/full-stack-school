@@ -5,9 +5,26 @@
   "maturity": {
     "current_stage": "scaffolded",
     "starting_score_percent": 18,
-    "current_score_percent": 27,
+    "current_score_percent": 31,
     "target_stage": "self_improving",
-    "ratchet_policy": "Advisory-first, PR-first, evidence-backed changes only."
+    "ratchet_policy": "Advisory-first, PR-first, evidence-backed changes only.",
+    "last_ratchet": {
+      "date": "2026-05-27",
+      "node": "node-1d1f6e487798",
+      "summary": "Revalidated repo-local guidance, deploy environment source, PR-publication blocker handling, agile work-item contract, and rollback evidence without changing product behavior.",
+      "score_percent": 31,
+      "evidence": [
+        "AGENTS.md",
+        ".codex/config/repo.json",
+        ".codex/rules/release-readiness.md",
+        "verification_contract.json",
+        "agile_work_item.json",
+        "docs/product/prfaq.md",
+        "docs/product/critical-user-journeys.md",
+        "docs/operations/deploy-safety.md",
+        ".codex/reports/release-readiness.md"
+      ]
+    }
   },
   "repo_contract": {
     "default_branch": "main",
@@ -325,7 +342,7 @@
   "deploy_contract": {
     "runtime_target": "cynik",
     "runtime_artifact": "Next.js production build or container image after verification",
-    "runtime_tar": ".codex/release/full-stack-school-release-readiness-node-7217a70e3c72-2026-05-26.tar.gz",
+    "runtime_tar": ".codex/release/full-stack-school-release-readiness-node-1d1f6e487798-2026-05-27.tar.gz",
     "env_file_source": "process environment supplied by deployment platform; committed .env files are forbidden",
     "healthcheck": "/health",
     "rollback": "previous_release",

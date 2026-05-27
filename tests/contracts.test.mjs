@@ -59,7 +59,12 @@ test("release readiness contract files are present and parseable", () => {
   assert.equal(productionProfile.workspace, "full-stack-school");
   assert.equal(productionProfile.schema_version, 1);
   assert.equal(productionProfile.maturity.current_stage, "scaffolded");
-  assert.equal(productionProfile.maturity.current_score_percent, 27);
+  assert.equal(productionProfile.maturity.current_score_percent, 31);
+  assert.equal(productionProfile.maturity.last_ratchet.node, "node-1d1f6e487798");
+  assert.ok(
+    productionProfile.maturity.last_ratchet.evidence.includes("agile_work_item.json"),
+    "maturity ratchet evidence should include the agile work-item contract"
+  );
   assert.equal(productionProfile.repo_contract.agile_work_item_contract, "agile_work_item.json");
   assert.equal(productionProfile.product.name, "Lama Dev School Management Dashboard");
   assert.equal(productionProfile.product.product_brief, "docs/product/prfaq.md");
@@ -283,7 +288,7 @@ test("release readiness contract files are present and parseable", () => {
   assert.equal(codexConfig.git_hygiene.upstream_tracking_required_for_pr, true);
   assert.equal(
     codexConfig.git_hygiene.current_blocker_documented_in,
-    ".codex/reports/release-readiness.md#node-7217a70e3c72-revalidation"
+    ".codex/reports/release-readiness.md#node-1d1f6e487798-revalidation"
   );
   assert.match(codexConfig.git_hygiene.delivery_remote_policy, /writable remote/);
   assert.equal(codexConfig.verification_contract, "verification_contract.json");
