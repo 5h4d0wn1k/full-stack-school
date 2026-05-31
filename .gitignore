@@ -16,6 +16,10 @@
 # production
 /build
 
+# release evidence bundles
+.codex/release/
+.codex/evidence/
+
 # misc
 .DS_Store
 *.pem
@@ -34,4 +38,3 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts

@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0",
+  "workspace": "full-stack-school",
+  "contract_type": "release_readiness_verification",
+  "default_branch": "main",
+  "delivery_path": "branch -> pull request -> CI checks -> reviewed merge -> deploy",
+  "agile_work_item_contract": "agile_work_item.json",
+  "runtime": {
+    "framework": "Next.js App Router",
+    "node": "20.x for CI and release verification",
+    "package_manager": "npm",
+    "database": "PostgreSQL through Prisma",
+    "auth_provider": "Clerk",
+    "healthcheck": "/health"
+  },
+  "environment": {
+    "env_file_source": "No committed env file. Local and production secrets must come from process environment or the deployment platform.",
+    "required_for_build_or_runtime": [
+      "DATABASE_URL",
+      "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+      "CLERK_SECRET_KEY"
+    ],
+    "never_commit": [
+      ".env",
+      ".env.local",
+      "production secrets",
+      "database dumps with real student or family data"
+    ]
+  },
+  "commands": {
+    "dependency_install": "npm ci",
+    "production_dependency_audit_critical": "npm audit --omit=dev --audit-level=critical",
+    "database_schema": "npx prisma migrate deploy",
+    "prisma_client": "npm run prisma:generate",
+    "contract_tests": "npm test",
+    "prisma_schema": "npm run prisma:validate",
+    "lint": "npm run lint",
+    "typecheck": "npm run typecheck",
+    "build": "npm run build",
+    "health_smoke": "npm run smoke:health",
+    "docker_compose_contract": "docker compose config",
+    "docker_deps_build": "docker build --no-cache --target deps -t full-stack-school:deps-check .",
+    "docker_release_build": "docker build --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y2xlcmsuZXhhbXBsZSQ -t full-stack-school:release-path .",
+    "container_health_smoke": "HEALTH_URL=http://127.0.0.1:<dynamic-port>/health npm run smoke:health",
+    "full_local_contract": "npm run verify"
+  },
+  "ci": {
+    "workflow": ".github/workflows/ci.yml",
+    "required_for_pr": [
+      "docker compose config --quiet",
+      "assert Dockerfile does not run prisma migrate dev during image build",
+      "docker build --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY -t full-stack-school:<sha> .",
+      "npm ci",
+      "npx prisma migrate deploy",
+      "npm run verify",
+      "npm run smoke:health against a started production build"
+    ]
+  },
+  "known_gaps": [
+    "Product behavior regression tests and release-contract tests are green under npm run verify, but no browser end-to-end suite exists for authenticated dashboard flows.",
+    "Production dependency audit critical gate is clear for the current locked baseline; npm audit --omit=dev currently reports 9 high and 3 moderate production vulnerabilities. The remaining fixes require separate behavior-tested major-upgrade work.",
+    "Local Docker release image build, /health smoke, and restart smoke pass with placeholder Clerk environment values after re-reading Docker's dynamic host port; real cynik shadow deploy and credentialed smoke remain blocked by missing deployment credentials and target metadata.",
+    ".dockerignore reduced the Docker build context to about 690kB during local verification; keep generated artifacts, local evidence, and secrets out of future image contexts."
+  ],
+  "rollback": {
+    "primary": "Revert the pull request or redeploy the previous release artifact.",
+    "database": "Only deploy backward-compatible Prisma migrations until a tested restore and rollback procedure exists."
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "workspace": "full-stack-school",
+  "mode": "production-grade-advisory-first",
+  "default_branch": "main",
+  "preferred_work_branch_prefix": "harden/",
+  "git_hygiene": {
+    "delivery_remote_policy": "Publish hardening branches through a writable remote or maintainer push before PR checks; do not bypass PR-first delivery by pushing directly to protected main.",
+    "upstream_tracking_required_for_pr": true,
+    "dirty_worktree_quarantine_required": true,
+    "dirty_worktree_evidence_dir": ".codex/evidence/",
+    "dirty_worktree_policy": "When there is a dirty worktree at pickup, capture git status, branch/upstream details, and git diff --binary before unrelated edits; do not discard, overwrite, or hide user, Ayushman, senior-dev, or teammate changes.",
+    "current_blocker_documented_in": ".codex/reports/release-readiness.md#node-7cb12d4685c0-revalidation"
+  },
+  "verification_contract": "verification_contract.json",
+  "production_grade_profile": ".jarvis/production_grade_profile.json",
+  "production_profile_release": ".jarvis/production_grade_profile.json#release",
+  "production_profile_release_rollback_action": ".jarvis/production_grade_profile.json#release.rollback_action",
+  "production_profile_verification": ".jarvis/production_grade_profile.json#verification",
+  "production_profile_reliability": ".jarvis/production_grade_profile.json#reliability",
+  "production_profile_ownership": ".jarvis/production_grade_profile.json#ownership",
+  "production_profile_continuous_improvement": ".jarvis/production_grade_profile.json#continuous_improvement",
+  "agile_work_item_contract": "agile_work_item.json",
+  "product_brief": "docs/product/prfaq.md",
+  "critical_user_journeys": "docs/product/critical-user-journeys.md",
+  "deploy_contract": {
+    "runtime_target": "cynik",
+    "env_file_source": "process environment supplied by deployment platform; committed .env files are forbidden",
+    "healthcheck": "/health",
+    "rollback": "previous_release"
+  },
+  "preflight_hook": ".codex/hooks/preflight.sh",
+  "pre_handoff_checklist": ".codex/hooks/pre-handoff.md",
+  "rules": [
+    ".codex/rules/release-readiness.md"
+  ],
+  "release_readiness_report": ".codex/reports/release-readiness.md"
+}
