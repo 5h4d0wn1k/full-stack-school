@@ -59,11 +59,17 @@ test("release readiness contract files are present and parseable", () => {
   assert.equal(productionProfile.workspace, "full-stack-school");
   assert.equal(productionProfile.schema_version, 1);
   assert.equal(productionProfile.maturity.current_stage, "scaffolded");
-  assert.equal(productionProfile.maturity.current_score_percent, 31);
-  assert.equal(productionProfile.maturity.last_ratchet.node, "node-1d1f6e487798");
+  assert.equal(productionProfile.maturity.current_score_percent, 36);
+  assert.equal(productionProfile.maturity.last_ratchet.node, "node-7cb12d4685c0");
   assert.ok(
     productionProfile.maturity.last_ratchet.evidence.includes("agile_work_item.json"),
     "maturity ratchet evidence should include the agile work-item contract"
+  );
+  assert.ok(
+    productionProfile.maturity.last_ratchet.evidence.includes(
+      ".codex/evidence/wip-quarantine-20260531T013254Z.tar.gz"
+    ),
+    "maturity ratchet evidence should include the current dirty-worktree quarantine bundle"
   );
   assert.equal(productionProfile.repo_contract.agile_work_item_contract, "agile_work_item.json");
   assert.equal(productionProfile.product.name, "Lama Dev School Management Dashboard");
@@ -286,9 +292,12 @@ test("release readiness contract files are present and parseable", () => {
 
   assert.equal(codexConfig.workspace, "full-stack-school");
   assert.equal(codexConfig.git_hygiene.upstream_tracking_required_for_pr, true);
+  assert.equal(codexConfig.git_hygiene.dirty_worktree_quarantine_required, true);
+  assert.match(codexConfig.git_hygiene.dirty_worktree_evidence_dir, /\.codex\/evidence\//);
+  assert.match(codexConfig.git_hygiene.dirty_worktree_policy, /git diff --binary/);
   assert.equal(
     codexConfig.git_hygiene.current_blocker_documented_in,
-    ".codex/reports/release-readiness.md#node-1d1f6e487798-revalidation"
+    ".codex/reports/release-readiness.md#node-7cb12d4685c0-revalidation"
   );
   assert.match(codexConfig.git_hygiene.delivery_remote_policy, /writable remote/);
   assert.equal(codexConfig.verification_contract, "verification_contract.json");
@@ -342,10 +351,13 @@ test("ci workflow covers the required release gates", () => {
 test("repo guidance names the PR-first and rollback posture", () => {
   const agents = readText("AGENTS.md");
   const rules = readText(".codex/rules/release-readiness.md");
+  const preflight = readText(".codex/hooks/preflight.sh");
   const report = readText(".codex/reports/release-readiness.md");
 
   assert.match(agents, /pull request/i);
   assert.match(agents, /upstream remote/i);
+  assert.match(agents, /dirty.*worktree/i);
+  assert.match(agents, /\.codex\/evidence\//);
   assert.match(agents, /PRFAQ/i);
   assert.match(agents, /critical user journey/i);
   assert.match(agents, /agile_work_item\.json/);
@@ -355,6 +367,8 @@ test("repo guidance names the PR-first and rollback posture", () => {
   assert.match(agents, /continuous_improvement/i);
   assert.match(rules, /rollback/i);
   assert.match(rules, /git branch -vv/);
+  assert.match(rules, /dirty.*worktree/i);
+  assert.match(rules, /git diff --binary/);
   assert.match(rules, /Definition of Ready/i);
   assert.match(rules, /agile_work_item\.json/);
   assert.match(rules, /architecture boundaries/i);
@@ -362,6 +376,9 @@ test("repo guidance names the PR-first and rollback posture", () => {
   assert.match(rules, /env_file_source/);
   assert.match(rules, /release owner/i);
   assert.match(rules, /scorecard/i);
+  assert.match(preflight, /env_file_source/);
+  assert.match(preflight, /dirty worktree detected/);
+  assert.match(preflight, /PR publication requires a writable remote or maintainer push/);
   assert.match(report, /Delivery Blockers/i);
   assert.match(report, /upstream remote/i);
 });
