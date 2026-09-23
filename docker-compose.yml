@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  postgress:
+  postgres:
     image: postgres:15
     container_name: postgres_db
     environment:
@@ -19,7 +19,7 @@ services:
     ports:
       - '3000:3000'
     environment:
-      - DATABASE_URL: postgresql://myuser:mypassword@[YOUR_SERVER_IP]:5432/mydb
+      - DATABASE_URL=postgresql://myuser:mypassword@[YOUR_SERVER_IP]:5432/mydb
     depends_on:
       - postgres
 
