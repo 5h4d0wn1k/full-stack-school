@@ -84,4 +84,5 @@ components/patterns and run `npm run lint` before submitting a change.
 
 ## License
 
-This repository does not currently include a LICENSE file.
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
